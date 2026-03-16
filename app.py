@@ -7,8 +7,12 @@ app = Flask(__name__)
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+if DATABASE_URL is None:
+    DATABASE_URL = "postgresql://sensordb_user:password@dpg-xxxxx:5432/sensordb_0653"
+
 conn = psycopg2.connect(DATABASE_URL)
 cur = conn.cursor()
+
 cur.execute("""
 CREATE TABLE IF NOT EXISTS sensor_data (
     id SERIAL PRIMARY KEY,
