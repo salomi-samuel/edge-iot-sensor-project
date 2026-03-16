@@ -16,10 +16,14 @@ GPIO.setup(ECHO, GPIO.IN)
 
 print("Edge filtering active...")
 
-with open("sensor_data.csv", "a", newline="") as f:
-    writer = csv.writer(f)
+with open("raw_sensor_data.csv", "a", newline="") as raw_file, \
+     open("filtered_sensor_data.csv", "a", newline="") as filtered_file:
+
+    raw_writer = csv.writer(raw_file)
+    filtered_writer = csv.writer(filtered_file)
 
     while True:
+
         motion = GPIO.input(PIR)
 
         GPIO.output(TRIG, False)
@@ -40,15 +44,19 @@ with open("sensor_data.csv", "a", newline="") as f:
 
         now = datetime.now()
 
-        # EDGE FILTERING
-        if motion == 1 or distance < 20:
+        # SAVE RAW DATA
+        raw_writer.writerow([now, motion, distance])
+        raw_file.flush()
 
-            writer.writerow([now, motion, distance])
-            f.flush()
+        # EDGE FILTERING
+        if motion == 1 or (0 < distance < 20):
+
+            filtered_writer.writerow([now, motion, distance])
+            filtered_file.flush()
 
             print("EVENT SENT →", now, motion, distance)
 
         else:
             print("Ignored (edge filtering)")
 
-        time.sleep(1)
+        time.sleep(0.3)
