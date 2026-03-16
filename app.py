@@ -11,16 +11,10 @@ HTML = """
 <meta http-equiv="refresh" content="5">
 <style>
 body { font-family: Arial; text-align:center; background:#f2f2f2; }
-
-table { margin:auto; border-collapse:collapse; margin-bottom:40px; }
-
+table { margin:auto; border-collapse:collapse; margin-bottom:40px;}
 th, td { padding:10px 20px; border:1px solid black; }
-
 th { background:#333; color:white; }
-
-h2 { margin-top:40px; }
-
-h3 { color:#444; }
+h2 {color:#333;}
 </style>
 </head>
 
@@ -36,7 +30,7 @@ h3 { color:#444; }
 <th>Distance (cm)</th>
 </tr>
 
-{% for row in raw_data %}
+{% for row in raw %}
 <tr>
 <td>{{row[0]}}</td>
 <td>{{row[1]}}</td>
@@ -47,7 +41,8 @@ h3 { color:#444; }
 </table>
 
 
-<h3>Filtered Sensor Readings (Edge Filtered)</h3>
+<h3>Filtered Sensor Readings (Edge Filtered: Distance &lt; 20 cm)</h3>
+
 <table>
 <tr>
 <th>Time</th>
@@ -55,7 +50,7 @@ h3 { color:#444; }
 <th>Distance (cm)</th>
 </tr>
 
-{% for row in filtered_data %}
+{% for row in filtered %}
 <tr>
 <td>{{row[0]}}</td>
 <td>{{row[1]}}</td>
@@ -72,22 +67,20 @@ h3 { color:#444; }
 
 @app.route("/")
 def home():
+
     try:
-        df = pd.read_csv("sensor_data.csv", header=None)
-
-        # Raw data (last 20 rows)
-        raw_data = df.tail(20).values.tolist()
-
-        # Filtered data (remove invalid distances)
-        filtered_df = df[(df[2] > 2) & (df[2] < 100)]
-
-        filtered_data = filtered_df.tail(20).values.tolist()
-
+        raw_df = pd.read_csv("raw_sensor_data.csv", header=None)
+        raw_data = raw_df.tail(20).values.tolist()
     except:
         raw_data = []
+
+    try:
+        filtered_df = pd.read_csv("filtered_sensor_data.csv", header=None)
+        filtered_data = filtered_df.tail(20).values.tolist()
+    except:
         filtered_data = []
 
-    return render_template_string(HTML, raw_data=raw_data, filtered_data=filtered_data)
+    return render_template_string(HTML, raw=raw_data, filtered=filtered_data)
 
 
 if __name__ == "__main__":
