@@ -8,7 +8,7 @@ app = Flask(__name__)
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if DATABASE_URL is None:
-    DATABASE_URL = "postgresql://sensordb_user:password@dpg-xxxxx:5432/sensordb_0653"
+    DATABASE_URL = "postgresql://sensordb_user:uOvPl9qWl5q7CTscURdLSQtgUr8k1wPK@dpg-d6s1n0juibrs73e2vsog-a/sensordb_0653"
 
 conn = psycopg2.connect(DATABASE_URL)
 cur = conn.cursor()
