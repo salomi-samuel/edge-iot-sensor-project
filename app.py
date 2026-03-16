@@ -182,13 +182,22 @@ var ctx = document.getElementById('distanceChart')
 new Chart(ctx, {
 type: 'line',
 data: {
-labels: {{labels}},
+labels: {{labels|tojson}},
 datasets: [{
 label: 'Distance (cm)',
-data: {{distances}},
+data: {{distances|tojson}},
 borderColor: 'cyan',
-fill:false
+backgroundColor:'rgba(0,255,255,0.2)',
+tension:0.3,
+fill:true
 }]
+},
+options:{
+scales:{
+y:{
+beginAtZero:true
+}
+}
 }
 })
 
