@@ -27,7 +27,12 @@ HTML = """
 <head>
 
 <title>Smart Proximity Monitoring System</title>
-
+<p>
+Edge Device: Raspberry Pi |
+Cloud API: Flask |
+Database: PostgreSQL |
+Deployment: Render Cloud
+</p>
 <meta http-equiv="refresh" content="5">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -89,12 +94,28 @@ border-radius:10px;
 <script>
 
 function showTab(tab){
+
+localStorage.setItem("activeTab", tab)
+
 document.getElementById("dashboard").style.display="none"
 document.getElementById("raw").style.display="none"
 document.getElementById("filtered").style.display="none"
 document.getElementById("analytics").style.display="none"
 
 document.getElementById(tab).style.display="block"
+
+}
+
+window.onload = function(){
+
+var tab = localStorage.getItem("activeTab")
+
+if(tab){
+showTab(tab)
+}else{
+showTab("dashboard")
+}
+
 }
 
 </script>
@@ -122,17 +143,33 @@ document.getElementById(tab).style.display="block"
 <div class="card">
 <h2>Total Readings</h2>
 <h1>{{total}}</h1>
+<p>Raw sensor readings generated</p>
 </div>
 
 <div class="card">
 <h2>Filtered Events</h2>
 <h1>{{filtered_count}}</h1>
+<p>Events sent to cloud</p>
 </div>
 
 <div class="card">
 <h2>Edge Reduction</h2>
 <h1>{{reduction}} %</h1>
+<p>Data reduced at edge device</p>
 </div>
+
+<div class="card">
+<h2>System</h2>
+<p>Edge Device: Raspberry Pi</p>
+<p>Database: PostgreSQL</p>
+<p>Server: Flask API</p>
+<p>Cloud: Render</p>
+</div>
+
+<p>
+Edge Processing filters unnecessary sensor readings before sending to the cloud.
+This reduces network usage and improves sustainability in IoT systems.
+</p>
 
 <h2>Distance Trend</h2>
 
