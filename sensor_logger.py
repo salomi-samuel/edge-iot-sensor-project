@@ -1,8 +1,10 @@
 import RPi.GPIO as GPIO
 import time
 import csv
+import requests
 from datetime import datetime
 
+# Sensor pins
 PIR = 17
 TRIG = 23
 ECHO = 24
@@ -16,12 +18,9 @@ GPIO.setup(ECHO, GPIO.IN)
 
 print("Edge filtering active...")
 
-with open("raw_sensor_data.csv", "a", newline="") as raw_file, \
-     open("filtered_sensor_data.csv", "a", newline="") as filtered_file:
+url = "https://edge-iot-sensor-project.onrender.com/upload"
 
-    raw_writer = csv.writer(raw_file)
-    filtered_writer = csv.writer(filtered_file)
-
+try:
     while True:
 
         motion = GPIO.input(PIR)
@@ -33,28 +32,38 @@ with open("raw_sensor_data.csv", "a", newline="") as raw_file, \
         time.sleep(0.00001)
         GPIO.output(TRIG, False)
 
+        start = time.time()
+        stop = time.time()
+
         while GPIO.input(ECHO) == 0:
             start = time.time()
 
         while GPIO.input(ECHO) == 1:
             stop = time.time()
 
-        distance = (stop - start) * 17150
+        elapsed = stop - start
+        distance = elapsed * 17150
         distance = round(distance, 2)
 
         now = datetime.now()
 
-        # SAVE ALL READINGS → RAW DATA
-        raw_writer.writerow([now, motion, distance])
-        raw_file.flush()
+        # Send data to cloud
+        data = {
+            "time": str(now),
+            "motion": motion,
+            "distance": distance
+        }
 
-        # FILTERED DATA → ONLY DISTANCE < 20
-        if distance < 20 and distance > 0:
-            filtered_writer.writerow([now, motion, distance])
-            filtered_file.flush()
+        try:
+            requests.post(url, data=data)
+            print("DATA SENT →", now, motion, distance)
+        except:
+            print("Server not reachable")
 
-            print("FILTERED EVENT →", now, motion, distance)
-        else:
-            print("RAW ONLY →", now, motion, distance)
+        time.sleep(0.5)
 
-        time.sleep(0.3)
+except KeyboardInterrupt:
+    print("Program stopped")
+
+finally:
+    GPIO.cleanup()
