@@ -6,15 +6,9 @@ PIR = 17
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR, GPIO.IN)
 
-print("PIR Sensor Test Started")
+print("Testing PIR...")
 
-try:
-    while True:
-        if GPIO.input(PIR):
-            print("Motion Detected!")
-        else:
-            print("No Motion")
-        time.sleep(1)
-
-except KeyboardInterrupt:
-    GPIO.cleanup()
+while True:
+    motion = GPIO.input(PIR)
+    print("Motion:", motion)
+    time.sleep(1)
