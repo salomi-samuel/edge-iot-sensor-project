@@ -1,8 +1,24 @@
 from flask import Flask, request, render_template_string
+import psycopg2
+import os
 import pandas as pd
-import csv
 
 app = Flask(__name__)
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+conn = psycopg2.connect(DATABASE_URL)
+cur = conn.cursor()
+cur.execute("""
+CREATE TABLE IF NOT EXISTS sensor_data (
+    id SERIAL PRIMARY KEY,
+    time TIMESTAMP,
+    motion INTEGER,
+    distance FLOAT
+)
+""")
+
+conn.commit()
 
 HTML = """
 <!DOCTYPE html>
@@ -61,18 +77,13 @@ th { background:#333; color:white; }
 @app.route("/")
 def home():
 
-    try:
-        raw = pd.read_csv("raw_sensor_data.csv", header=None).tail(20).values.tolist()
-    except:
-        raw = []
+    cur.execute("SELECT time, motion, distance FROM sensor_data ORDER BY time DESC LIMIT 20")
+    raw = cur.fetchall()
 
-    try:
-        filtered = pd.read_csv("filtered_sensor_data.csv", header=None).tail(20).values.tolist()
-    except:
-        filtered = []
+    cur.execute("SELECT time, motion, distance FROM sensor_data WHERE distance < 20 ORDER BY time DESC LIMIT 20")
+    filtered = cur.fetchall()
 
     return render_template_string(HTML, raw=raw, filtered=filtered)
-
 
 # API endpoint for Raspberry Pi
 @app.route("/upload", methods=["POST"])
@@ -82,17 +93,11 @@ def upload():
     motion = request.form["motion"]
     distance = request.form["distance"]
 
-    with open("raw_sensor_data.csv","a",newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([time,motion,distance])
+    cur.execute(
+        "INSERT INTO sensor_data (time, motion, distance) VALUES (%s, %s, %s)",
+        (time, motion, distance)
+    )
 
-    if float(distance) < 20:
-        with open("filtered_sensor_data.csv","a",newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow([time,motion,distance])
+    conn.commit()
 
     return "OK"
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
